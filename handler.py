@@ -7,13 +7,19 @@ import base64
 import io
 import urllib.request
 import time
+import sys
+
+sys.path.append('/app/Depth-Anything')
+
+from depth_anything_v2.dpt import DepthAnythingV2
 
 print("Loading Depth-Anything-V2 model...")
-model = torch.hub.load(
-    'LiheYoung/Depth-Anything', 
-    'Depth_Anything_V2_Small', 
-    pretrained=True
-)
+model_configs = {
+    'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]}
+}
+
+model = DepthAnythingV2(**model_configs['vits'])
+model.load_state_dict(torch.load('/app/depth_anything_v2_vits.pth', map_location='cpu'))
 model = model.cuda().eval()
 print("Model loaded successfully!")
 
