@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY handler.py .
 
-RUN python -c "import torch; torch.hub.load('LiheYoung/Depth-Anything', 'Depth_Anything_V2_Small', pretrained=True)"
+RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything && \
+    cd /app/Depth-Anything && \
+    wget -q https://huggingface.co/spaces/LiheYoung/Depth-Anything/resolve/main/checkpoints/depth_anything_v2_vits.pth -O /app/depth_anything_v2_vits.pth
 
 CMD ["python", "-u", "handler.py"]
