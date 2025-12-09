@@ -9,10 +9,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY handler.py .
 
+# Clone repo
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
+# FIX: Make it a proper Python package
+RUN touch /app/Depth-Anything/__init__.py && \
+    touch /app/Depth-Anything/depth_anything_v2/__init__.py
+
+# Download model
 RUN cd /tmp && \
-    wget https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth && \
+    wget --no-check-certificate https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth && \
     mv depth_anything_v2_vits.pth /app/
+
+# Verify
+RUN ls -la /app/ && \
+    ls -la /app/Depth-Anything/depth_anything_v2/ && \
+    echo "Setup complete"
 
 CMD ["python", "-u", "handler.py"]
