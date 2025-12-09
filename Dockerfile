@@ -12,8 +12,11 @@ COPY handler.py .
 # Clone Depth-Anything repository
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
-# FIX: Create __init__.py files using Python (more reliable than shell commands)
-RUN python3 -c "open('/app/Depth-Anything/__init__.py', 'w').close(); open('/app/Depth-Anything/depth_anything_v2/__init__.py', 'w').close(); print('✓ __init__.py files created')"
+# FIX: Create __init__.py files using a simple echo command
+RUN echo "" > /app/Depth-Anything/__init__.py && \
+    echo "" > /app/Depth-Anything/depth_anything_v2/__init__.py && \
+    ls -la /app/Depth-Anything/__init__.py && \
+    ls -la /app/Depth-Anything/depth_anything_v2/__init__.py
 
 # Download model
 RUN cd /tmp && \
@@ -24,6 +27,6 @@ RUN cd /tmp && \
 RUN ls -la /app/ && \
     ls -la /app/Depth-Anything/ && \
     ls -la /app/Depth-Anything/depth_anything_v2/ && \
-    python3 -c "import os; print('✓ __init__.py exists:', os.path.exists('/app/Depth-Anything/__init__.py'), os.path.exists('/app/Depth-Anything/depth_anything_v2/__init__.py'))"
+    echo "✓ Setup complete"
 
 CMD ["python", "-u", "handler.py"]
