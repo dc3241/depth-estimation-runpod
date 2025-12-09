@@ -12,8 +12,9 @@ COPY handler.py .
 # Clone Depth-Anything repository
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
-# FIX: Create __init__.py files with correct syntax
+# Create __init__.py files - create directory if it doesn't exist
 RUN touch /app/Depth-Anything/__init__.py && \
+    mkdir -p /app/Depth-Anything/depth_anything_v2 && \
     touch /app/Depth-Anything/depth_anything_v2/__init__.py && \
     ls -la /app/Depth-Anything/__init__.py && \
     ls -la /app/Depth-Anything/depth_anything_v2/__init__.py
