@@ -8,20 +8,40 @@ import io
 import urllib.request
 import time
 import sys
+import os
 
-sys.path.append('/app/Depth-Anything')
+# Add Depth-Anything to path
+sys.path.insert(0, '/app/Depth-Anything')
 
-from depth_anything_v2.dpt import DepthAnythingV2
+print("Importing Depth-Anything V2...")
+try:
+    from depth_anything_v2.dpt import DepthAnythingV2
+    print("✓ Import successful")
+except ImportError as e:
+    print(f"✗ Import failed: {e}")
+    print("Available files in /app/Depth-Anything:")
+    os.system("ls -la /app/Depth-Anything")
+    raise
 
-print("Loading Depth-Anything-V2 model...")
+print("Loading model checkpoint...")
 model_configs = {
     'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]}
 }
 
-model = DepthAnythingV2(**model_configs['vits'])
-model.load_state_dict(torch.load('/app/depth_anything_v2_vits.pth', map_location='cpu'))
-model = model.cuda().eval()
-print("Model loaded successfully!")
+try:
+    model = DepthAnythingV2(**model_configs['vits'])
+    if os.path.exists('/app/depth_anything_v2_vits.pth'):
+        model.load_state_dict(torch.load('/app/depth_anything_v2_vits.pth', map_location='cpu'))
+        print("✓ Model loaded from /app/depth_anything_v2_vits.pth")
+    else:
+        print("✗ Model file not found at /app/depth_anything_v2_vits.pth")
+        raise FileNotFoundError("Model checkpoint not found")
+    
+    model = model.cuda().eval()
+    print("✓ Model moved to GPU and set to eval mode")
+except Exception as e:
+    print(f"✗ Model loading failed: {e}")
+    raise
 
 def download_image(url, max_retries=3):
     """Download image from URL with retry logic"""
@@ -38,64 +58,43 @@ def download_image(url, max_retries=3):
             raise Exception(f"Failed to download image after {max_retries} attempts: {str(e)}")
 
 def generate_depth_map(job):
-    """
-    RunPod handler function for depth map generation
-    
-    Input format:
-    {
-        "input": {
-            "image_url": "https://your-s3-bucket.s3.amazonaws.com/image.jpg"
-        }
-    }
-    
-    Output format:
-    {
-        "depth_map_base64": "iVBORw0KGgoAAAANS...",
-        "width": 1920,
-        "height": 1080,
-        "processing_time_ms": 5430
-    }
-    """
+    """RunPod handler function"""
     start_time = time.time()
     
     try:
-        # Extract image URL from job input
         job_input = job.get('input', {})
         image_url = job_input.get('image_url')
         
         if not image_url:
-            return {
-                "error": "Missing 'image_url' in input",
-                "status": "failed"
-            }
+            return {"error": "Missing 'image_url' in input", "status": "failed"}
         
-        print(f"Processing image: {image_url}")
+        print(f"Processing: {image_url}")
         
-        # Download image
+        # Download
         download_start = time.time()
         image = download_image(image_url)
         download_time = (time.time() - download_start) * 1000
-        print(f"Image downloaded in {download_time:.0f}ms - Size: {image.size}")
+        print(f"Downloaded in {download_time:.0f}ms - Size: {image.size}")
         
-        # Convert to numpy array
+        # Convert to numpy
         image_np = np.array(image)
         
-        # Generate depth map
+        # Generate depth
         inference_start = time.time()
         with torch.no_grad():
             depth = model.infer_image(image_np)
         inference_time = (time.time() - inference_start) * 1000
-        print(f"Depth inference completed in {inference_time:.0f}ms")
+        print(f"Inference: {inference_time:.0f}ms")
         
-        # Normalize depth map to 0-255
+        # Normalize
         depth_min = depth.min()
         depth_max = depth.max()
         depth_normalized = ((depth - depth_min) / (depth_max - depth_min) * 255).astype(np.uint8)
         
-        # Convert to grayscale image
+        # Convert to image
         depth_image = Image.fromarray(depth_normalized, mode='L')
         
-        # Encode as base64
+        # Encode
         encode_start = time.time()
         buffer = io.BytesIO()
         depth_image.save(buffer, format='PNG')
@@ -104,10 +103,7 @@ def generate_depth_map(job):
         
         total_time = (time.time() - start_time) * 1000
         
-        print(f"Total processing time: {total_time:.0f}ms")
-        print(f"  - Download: {download_time:.0f}ms")
-        print(f"  - Inference: {inference_time:.0f}ms")
-        print(f"  - Encoding: {encode_time:.0f}ms")
+        print(f"Total: {total_time:.0f}ms")
         
         return {
             "depth_map_base64": depth_base64,
@@ -131,6 +127,5 @@ def generate_depth_map(job):
             "processing_time_ms": int(error_time)
         }
 
-# Start RunPod serverless handler
 print("Starting RunPod serverless handler...")
-runpod.serverless.start({"handler": generate_depth_map})
+runpod
