@@ -9,12 +9,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY handler.py .
 
-# Clone repo
+# Clone Depth-Anything repository
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
-# FIX: Create __init__.py files (separate RUN commands)
-RUN touch /app/Depth-Anything/__init__.py
-RUN touch /app/Depth-Anything/depth_anything_v2/__init__.py
+# FIX: Create __init__.py files in a single RUN command
+RUN cd /app/Depth-Anything && \
+    touch __init__.py && \
+    cd depth_anything_v2 && \
+    touch __init__.py && \
+    echo "✓ __init__.py files created"
 
 # Download model
 RUN cd /tmp && \
