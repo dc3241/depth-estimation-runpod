@@ -12,12 +12,8 @@ COPY handler.py .
 # Clone Depth-Anything repository
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
-# FIX: Create __init__.py files in a single RUN command
-RUN cd /app/Depth-Anything && \
-    touch __init__.py && \
-    cd depth_anything_v2 && \
-    touch __init__.py && \
-    echo "✓ __init__.py files created"
+# FIX: Create __init__.py files using shell -c
+RUN /bin/bash -c "cd /app/Depth-Anything && touch __init__.py && cd depth_anything_v2 && touch __init__.py && ls -la /app/Depth-Anything/__init__.py && ls -la /app/Depth-Anything/depth_anything_v2/__init__.py"
 
 # Download model
 RUN cd /tmp && \
