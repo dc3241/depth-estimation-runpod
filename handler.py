@@ -10,29 +10,26 @@ import sys
 import os
 
 print("="*60)
-print("DEPTH-ANYTHING V2 HANDLER")
+print("DEPTH-ANYTHING HANDLER")
 print("="*60)
 
 # Add to path
 sys.path.insert(0, '/app/Depth-Anything')
 
-print("Importing Depth-Anything V2...")
-# The correct import path based on the actual repo structure
-from depth_anything_v2.dpt import DepthAnythingV2
+print("Importing Depth-Anything...")
+# The correct import path based on actual repo structure
+from depth_anything.dpt import DepthAnything
+from depth_anything.util.transform import Resize, NormalizeImage, PrepareForNet
 
 print("✓ Import successful")
 
 print("Loading model...")
-model_configs = {
-    'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]}
-}
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
-model = DepthAnythingV2(**model_configs['vits'])
-model.load_state_dict(torch.load('/app/depth_anything_v2_vits.pth', map_location='cpu'))
-model = model.to(device).eval()
+# Initialize model
+model = DepthAnything.from_pretrained('LiheYoung/depth_anything_vits14').to(device).eval()
+
 print("✓ Model ready")
 print("="*60)
 
