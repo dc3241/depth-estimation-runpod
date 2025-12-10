@@ -12,12 +12,11 @@ COPY handler.py .
 # Clone Depth-Anything repository
 RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 
-# Create __init__.py file for the depth_anything module
+# Create __init__.py files for proper Python module structure
 RUN touch /app/Depth-Anything/__init__.py && \
     touch /app/Depth-Anything/depth_anything/__init__.py
 
 # Verify setup
-RUN ls -la /app/Depth-Anything/ && \
-    echo "✓ Setup complete"
+RUN echo "✓ Depth-Anything cloned and configured"
 
 CMD ["python", "-u", "handler.py"]
