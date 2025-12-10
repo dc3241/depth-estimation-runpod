@@ -16,7 +16,4 @@ RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 RUN touch /app/Depth-Anything/__init__.py && \
     touch /app/Depth-Anything/depth_anything/__init__.py
 
-# Verify setup
-RUN echo "✓ Depth-Anything cloned and configured"
-
-CMD ["python", "-u", "handler.py"]
+CMD ["python", "-u", "/app/handler.py"]
