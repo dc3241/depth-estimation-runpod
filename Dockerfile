@@ -16,4 +16,9 @@ RUN git clone https://github.com/LiheYoung/Depth-Anything /app/Depth-Anything
 RUN touch /app/Depth-Anything/__init__.py && \
     touch /app/Depth-Anything/depth_anything/__init__.py
 
+# Download DINOv2 backbone (required by Depth-Anything)
+RUN mkdir -p /app/torchhub && \
+    cd /app/torchhub && \
+    git clone https://github.com/facebookresearch/dinov2.git facebookresearch_dinov2_main
+
 CMD ["python", "-u", "/app/handler.py"]
